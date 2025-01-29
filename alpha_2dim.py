@@ -1,3 +1,9 @@
+"""
+
+ホモロジー群の次元も求めてみるやつ
+"""
+
+
 import numpy as np
 from itertools import combinations
 
@@ -13,12 +19,22 @@ def compute_circumcircle(a: np.ndarray, b: np.ndarray, c: np.ndarray):
     if np.isclose(np.linalg.det(mat), 0):
         return None, None  # 同一直線上の点
 
+    # 三角形の外心 (異なる2つの辺の垂直二等分線の交点) を求める
+    # A = np.array([
+    #     [b[1] - a[1], b[0]-a[0]],
+    #     [c[1] - a[1], c[0]-a[0]]
+    # ])
+    # b_vec = np.array([
+    #     b[0] - a[0], c[0]-a[0]
+    # ])
+
     A = np.array([
-        [b[1] - a[1], a[0]-b[0]],
-        [c[1] - a[1], a[0]-c[0]]
+        [a[0]-b[0], a[1]-b[1]],
+        [a[0]-c[0], a[1]-c[1]],
     ])
-    b_vec = np.array([
-        b[0] - a[0], c[0]-a[0]
+    b_vec = 0.5*np.array([
+        (a[0]-b[0])**2 + (a[1]-b[1])**2,
+        (a[0]-c[0]) ** 2 + (a[1] - c[1]) ** 2
     ])
 
     try:
@@ -35,7 +51,7 @@ def compute_delaunay_complex(points: np.ndarray):
     n = points.shape[0]
     delaunay_triangles = []
 
-    # 全ての3点の組み合わせをチェック
+    # 全ての点の組み合わせをチェック
     for tri_indices in combinations(range(n), 3):
         a, b, c = points[list(tri_indices)]
         center, radius = compute_circumcircle(a, b, c)
@@ -160,5 +176,5 @@ def main(points):
 # 使用例
 if __name__ == "__main__":
     # 正方形の4点
-    points = np.array([[0, 0], [1, 0], [0, 1], [1, 1]])
+    points = np.array([[0, 0], [1, 0], [0, 1]])
     main(points)
