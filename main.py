@@ -2,8 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial import Voronoi, voronoi_plot_2d, Delaunay
 from shapely.geometry import Polygon, Point
-from collections import defaultdict
-
 
 def triangle_circumradius(points):
     """三角形の外接円半径を計算"""
@@ -13,89 +11,77 @@ def triangle_circumradius(points):
     area = 0.25 * np.sqrt((a + b + c) * (-a + b + c) * (a - b + c) * (a + b - c))
     return (a * b * c) / (4 * area) if area != 0 else np.inf
 
-
-# ランダム点群の生成（可視化しやすいよう20点に減らす）
+# ランダム点群の生成
 np.random.seed(42)
-points = np.random.rand(3, 2)
-alpha = 0.1
+points = np.random.rand(5, 2)
+alpha = 0.2
+
+# FigureとAxesオブジェクトを作成
+fig, axes = plt.subplots(2, 2, figsize=(12, 12))
+# 2x2のレイアウトで、Figureサイズを12x12に設定
 
 # 1. ランダムな点群の可視化
-plt.figure(figsize=(6, 6))
-plt.scatter(points[:, 0], points[:, 1], c='red', s=30)
-plt.title("1. Random Point Cloud")
-plt.show()
+axes[0, 0].scatter(points[:, 0], points[:, 1], c='red', s=30)
+axes[0, 0].set_title("1. Random Point Cloud")
 
 # 2. ボロノイ図の可視化
 vor = Voronoi(points)
-fig, ax = plt.subplots(figsize=(6, 6))
-voronoi_plot_2d(vor, ax=ax, show_vertices=False, show_points=False, line_colors='gray')
-plt.scatter(points[:, 0], points[:, 1], c='red', s=30)
-plt.title("2. Voronoi Regions")
-plt.show()
+voronoi_plot_2d(vor, ax=axes[0, 1], show_vertices=False, show_points=False, line_colors='gray')
+axes[0, 1].scatter(points[:, 0], points[:, 1], c='red', s=30)
+axes[0, 1].set_title("2. Voronoi Regions")
 
 # 3. ボロノイ領域とαボールの重なり部分の可視化
-fig, ax = plt.subplots(figsize=(6, 6))
-voronoi_plot_2d(vor, ax=ax, show_vertices=False, show_points=False, line_colors='gray')
-plt.scatter(points[:, 0], points[:, 1], c='red', s=30)
+voronoi_plot_2d(vor, ax=axes[1, 0], show_vertices=False, show_points=False, line_colors='gray')
+axes[1, 0].scatter(points[:, 0], points[:, 1], c='red', s=30)
 
-# αボールの描画
 for point in points:
-    ax.add_artist(plt.Circle(point, alpha, facecolor='blue', alpha=0.1, edgecolor='none'))
+    axes[1, 0].add_artist(plt.Circle(point, alpha, facecolor='blue', alpha=0.1, edgecolor='none')) #修正済み
 
-# ボロノイ領域とαボールの重なり部分を計算
 for i in range(len(points)):
     region = vor.regions[vor.point_region[i]]
     if not region or -1 in region:
-        continue  # 無限遠点を含む領域はスキップ
+        continue
 
     vor_poly = Polygon(vor.vertices[region])
     circle = Point(points[i]).buffer(alpha)
     intersection = vor_poly.intersection(circle)
 
-    if not intersection.is_empty:
-        if intersection.geom_type == 'Polygon':
-            x, y = intersection.exterior.xy
-            ax.fill(x, y, color='green', alpha=0.3)
-        elif intersection.geom_type == 'MultiPolygon':
-            for poly in intersection.geoms:
-                x, y = poly.exterior.xy
-                ax.fill(x, y, color='green', alpha=0.3)
-
-plt.title("3. Voronoi-Alpha Ball Intersections")
-plt.show()
+axes[1, 0].set_title("3. Voronoi-Alpha Ball Intersections")
 
 # 4. アルファ複体の構築
 tri = Delaunay(points)
 tri_radii = [triangle_circumradius(points[s]) for s in tri.simplices]
 valid_triangles = tri.simplices[np.array(tri_radii) <= alpha]
 
-edge_radii = defaultdict(list)
-for i, simplex in enumerate(tri.simplices):
-    radius = tri_radii[i]
-    for edge in (sorted((simplex[0], simplex[1])),
-                 sorted((simplex[1], simplex[2])),
-                 sorted((simplex[2], simplex[0]))):
-        edge_radii[tuple(edge)].append(radius)
+valid_edges = []
+for edge in tri.simplices:
+    for i in range(3):
+        p1, p2 = edge[i], edge[(i+1)%3]
+        dist = np.linalg.norm(points[p1] - points[p2])
+        if dist <= 2 * alpha:
+            valid_edges.append((p1, p2))
+valid_edges = list(set(valid_edges))  # 重複を削除
 
-valid_edges = [edge for edge, radii in edge_radii.items() if min(radii) <= alpha]
 
 # アルファ複体の描画
-plt.figure(figsize=(6, 6))
-plt.gca().set_aspect('equal')
-
-# デロネー三角形を背景に表示
-plt.triplot(points[:, 0], points[:, 1], tri.simplices, color='gray', lw=0.5, alpha=0.3)
+axes[1, 1].set_aspect('equal')
 
 # アルファ複体の辺を表示
 for edge in valid_edges:
     p1, p2 = points[edge[0]], points[edge[1]]
-    plt.plot([p1[0], p2[0]], [p1[1], p2[1]], 'b-', lw=2)
+    axes[1, 1].plot([p1[0], p2[0]], [p1[1], p2[1]], 'b-', lw=2)
 
 # アルファ複体の三角形を表示
 for triangle in valid_triangles:
     pts = points[triangle]
-    plt.fill(pts[:, 0], pts[:, 1], edgecolor='none', alpha=0.3, color='cyan')
+    axes[1, 1].fill(pts[:, 0], pts[:, 1], edgecolor='none', alpha=0.3, color='cyan')
 
-plt.scatter(points[:, 0], points[:, 1], c='red', s=30)
-plt.title(f'4. Alpha Complex (α={alpha})')
+axes[1, 1].scatter(points[:, 0], points[:, 1], c='red', s=30)
+axes[1, 1].set_title(f'4. Alpha Complex (α={alpha})')
+
+# グラフ間のスペース調整
+plt.tight_layout()
+
+# 画像として保存
+plt.savefig("alpha_complex.png")
 plt.show()
