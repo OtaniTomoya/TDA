@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.spatial import Voronoi, voronoi_plot_2d, Delaunay
 from shapely.geometry import Polygon, Point
 
+
 def triangle_circumradius(points):
     """三角形の外接円半径を計算"""
     a = np.linalg.norm(points[1] - points[2])
@@ -11,10 +12,11 @@ def triangle_circumradius(points):
     area = 0.25 * np.sqrt((a + b + c) * (-a + b + c) * (a - b + c) * (a + b - c))
     return (a * b * c) / (4 * area) if area != 0 else np.inf
 
+
 # ランダム点群の生成
 np.random.seed(42)
-points = np.random.rand(5, 2)
-alpha = 0.2
+points = np.random.rand(20, 2)
+alpha = 0.1
 
 # FigureとAxesオブジェクトを作成
 fig, axes = plt.subplots(2, 2, figsize=(12, 12))
@@ -35,7 +37,7 @@ voronoi_plot_2d(vor, ax=axes[1, 0], show_vertices=False, show_points=False, line
 axes[1, 0].scatter(points[:, 0], points[:, 1], c='red', s=30)
 
 for point in points:
-    axes[1, 0].add_artist(plt.Circle(point, alpha, facecolor='blue', alpha=0.1, edgecolor='none')) #修正済み
+    axes[1, 0].add_artist(plt.Circle(point, alpha, facecolor='blue', alpha=0.1, edgecolor='none'))  # 修正済み
 
 for i in range(len(points)):
     region = vor.regions[vor.point_region[i]]
@@ -53,15 +55,18 @@ tri = Delaunay(points)
 tri_radii = [triangle_circumradius(points[s]) for s in tri.simplices]
 valid_triangles = tri.simplices[np.array(tri_radii) <= alpha]
 
+voronoi_plot_2d(vor, ax=axes[1, 1], show_vertices=False, show_points=False, line_colors='gray')
+for point in points:
+    axes[1, 1].add_artist(plt.Circle(point, alpha, facecolor='blue', alpha=0.1, edgecolor='none'))  # 修正済み
+
 valid_edges = []
 for edge in tri.simplices:
     for i in range(3):
-        p1, p2 = edge[i], edge[(i+1)%3]
+        p1, p2 = edge[i], edge[(i + 1) % 3]
         dist = np.linalg.norm(points[p1] - points[p2])
         if dist <= 2 * alpha:
             valid_edges.append((p1, p2))
 valid_edges = list(set(valid_edges))  # 重複を削除
-
 
 # アルファ複体の描画
 axes[1, 1].set_aspect('equal')
