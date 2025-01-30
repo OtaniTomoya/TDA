@@ -75,9 +75,9 @@ def main():
     """メイン関数"""
     # パラメータ設定
     np.random.seed(42)
-    n_points = 10000
+    n_points = 20
     alpha = 1
-    max_dim = 3
+    max_dim = 10
 
     # データ生成
     points = StandardScaler().fit_transform(np.random.rand(n_points, max_dim))
@@ -97,7 +97,7 @@ def main():
         print(f" {dim}-simplices: {count}")
 
     # 可視化
-    visualize_projection(points, structures, dimensions=3)
+    # visualize_projection(points, structures, dimensions=3)
 
 
 if __name__ == "__main__":
