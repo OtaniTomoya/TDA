@@ -5,7 +5,7 @@ from matplotlib.animation import FuncAnimation
 from sklearn.datasets import make_swiss_roll
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 # スイスロールデータ生成
-X, color = make_swiss_roll(n_samples=300, noise=0.5, random_state=42)
+X, color = make_swiss_roll(n_samples=1000, noise=0.1)
 X = X[:, [0, 2, 1]]  # 視覚化のため軸を調整
 
 # 3D Delaunay四面体分割
@@ -17,7 +17,7 @@ ax1 = fig.add_subplot(121, projection='3d')
 ax2 = fig.add_subplot(122, projection='3d')
 
 # アニメーションパラメータ
-alpha_values = np.linspace(0.1, 5, 500)
+alpha_values = np.linspace(0.1, 5, 100)
 
 # 単体のプロパティを格納する辞書
 simplex_properties = {}
@@ -86,6 +86,7 @@ def animate(i):
     # プロット
     ax1.scatter(X[:, 0], X[:, 1], X[:, 2], c=color, cmap='viridis', s=20, alpha=0.5)
     # ax1.view_init(elev=i * 2, azim=i * 2)
+    ax1.view_init(elev=75)
     ax1.set_title('Swiss Roll')
 
     # アルファ複体のプロット
@@ -101,6 +102,7 @@ def animate(i):
 
     ax2.scatter(X[:, 0], X[:, 1], X[:, 2], c=color, cmap='viridis', s=20)
     # ax2.view_init(elev=i*2, azim=i * 2)
+    ax2.view_init(elev=75)
     ax2.set_title(f'Alpha Complex (α={alpha:.1f})')
 
     ax2.set_xlim(X[:, 0].min(), X[:, 0].max())
@@ -110,8 +112,10 @@ def animate(i):
 
 # アニメーション作成
 ani = FuncAnimation(fig, animate, frames=len(alpha_values), interval=100)
+import time
 
+t = time.time()
 # 動画保存
-ani.save('alpha_complex_3d.mp4', writer='ffmpeg', dpi=100)
+ani.save(f'alpha_complex_3d{t}.mp4', writer='ffmpeg', dpi=100)
 
 plt.show()
