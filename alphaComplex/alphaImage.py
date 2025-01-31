@@ -88,5 +88,5 @@ for alpha in range(1, 50):
     plt.tight_layout()
 
     # 画像として保存
-    plt.savefig(f"alpha_complex{alpha}.png")
+    plt.savefig(f"../image/alpha_complex{alpha}.png")
     plt.show()

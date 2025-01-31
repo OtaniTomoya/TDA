@@ -83,6 +83,6 @@ def animate(i):
 ani = FuncAnimation(fig, animate, frames=200, interval=50, repeat=False)
 
 # 動画として保存
-ani.save('alpha_complex_animation.mp4', writer='ffmpeg')
+ani.save('../movie/alpha_complex_animation.mp4', writer='ffmpeg')
 
 plt.show()
