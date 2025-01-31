@@ -1,9 +1,3 @@
-"""
-
-ホモロジー群の次元も求めてみるやつ
-"""
-
-
 import numpy as np
 from itertools import combinations
 
