@@ -20,8 +20,9 @@ fig = plt.figure(figsize=(12, 6))
 ax1 = fig.add_subplot(121, projection='3d')
 ax2 = fig.add_subplot(122, projection='3d')
 
+num = 100
 # アニメーションパラメータ
-alpha_values = np.linspace(0.1, 5, 1000)
+alpha_values = np.linspace(0.1, 5, num)
 
 # 単体のプロパティを格納する辞書
 simplex_properties = {}
@@ -65,7 +66,7 @@ def compute_betti_numbers_for_alpha(points, alpha, maxdim=5):
 
 
 def animate(i):
-    str = "=" * int(i*0.1) + "-" * int(100 - i*0.1) + f"Progress: {round(i*0.1, 1)}%"
+    str = "=" * int(i*(100/num)) + "-" * int(100 - i*(100/num)) + f"Progress: {round(i*(100/num), 1)}%"
     print(f"\r{str}", end="")
     alpha = alpha_values[i]
 
@@ -150,6 +151,6 @@ ani = FuncAnimation(fig, animate, frames=len(alpha_values), interval=500)
 import time
 
 t = time.time()
-ani.save(f'alpha_complex_3d_{t}.mp4', writer='ffmpeg', dpi=1000)
+ani.save(f'../movie/alpha_complex_3d_{t}.mp4', writer='ffmpeg', dpi=1000)
 
 plt.show()
